@@ -165,7 +165,7 @@ void Chess::setPieces()
 
 #endif // WINDOWS
 
-// print the only the board to screen 
+// print the only the _board to screen
 void Chess::show() const 
 {
 	for (size_t row = 0; row < _SIZE; ++row)
@@ -175,7 +175,7 @@ void Chess::show() const
 		cout << endl;
 	}
 }
-// clear screen and print the board and the relevant msg 
+// clear screen and print the _board and the relevant msg
 void Chess::displayBoard() const
 {
 	clear();
@@ -196,7 +196,7 @@ bool Chess::isSame() const
 {
 	return ((m_input[0] == m_input[2]) && (m_input[1] == m_input[3]));
 } 
-// check if the input is lockations at board
+// check if the input is lockations at _board
 bool Chess::isValid() const
 {
 	return ((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
@@ -210,7 +210,7 @@ bool Chess::isExit() const
 {
 	return ((m_input == "exit") || (m_input == "quit") || (m_input == "EXIT") || (m_input == "QUIT"));
 }
-// execute the movement on board 
+// execute the movement on _board
 void Chess::excute()
 {
 	int row = (m_input[0] - 'a');
@@ -232,12 +232,12 @@ void Chess::doTurn()
 	{
 	case 11:
 	{
-		m_msg = "there is not piece at the source \n";
+		m_msg = "there is not Piece at the source \n";
 		break;
 	}
 	case 12:
 	{
-		m_msg = "the piece in the source is piece of your opponent \n";
+		m_msg = "the Piece in the source is Piece of your opponent \n";
 		break;
 	}
 	case 13:
@@ -247,7 +247,7 @@ void Chess::doTurn()
 	}
 	case 21:
 	{
-		m_msg = "illegal movement of that piece \n";
+		m_msg = "illegal movement of that Piece \n";
 		break;
 	}
 	case 31:
