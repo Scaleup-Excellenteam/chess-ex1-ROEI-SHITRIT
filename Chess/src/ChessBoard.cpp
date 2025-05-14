@@ -1,4 +1,4 @@
-#pragma one
+#pragma once
 
 #include <iostream>
 #include "ChessBoard.h"
@@ -8,6 +8,7 @@
 #include "Pawn.h"
 #include "Knight.h"
 #include "Queen.h"
+#include "SpecialExceptions.h"
 
 /**
  * @brief Constructs a ChessBoard from a string representation of the board.
@@ -156,12 +157,15 @@ int ChessBoard::isValidMove(location &from, location &to) {
  * @param from The starting location.
  * @param to The target location.
  */
-void ChessBoard::movePiece(location &from, location &to) {
+void ChessBoard::movePiece(location &from, location &to,bool isSimulate) {
     auto it =getBoard().find(from);
     std::shared_ptr<Piece> value = it->second;
     value->setLocation(to);
     this->_board.erase(from);
-    value->pieceMoved();
+    if(!isSimulate){
+        value->pieceMoved();
+    }
+
     if(value->getTool() == 'k'){
         if(value->getColor() == WHITE){
             this->_whiteKing = value->getCoordinate();
@@ -189,15 +193,15 @@ void ChessBoard::movePiece(location &from, location &to) {
 int ChessBoard::simulateMove(location &from, location &to) {
     ChessBoard tmpBoard(*this);
     bool isWhite = tmpBoard._whiteTurn;
-    tmpBoard.movePiece(from,to);
+    tmpBoard.movePiece(from,to, false);
     if(tmpBoard.isKingInCheck(isWhite)){
         return INVALID_SELF_CHECK;
     }
     if(tmpBoard.isKingInCheck(!isWhite)){
-        this->movePiece(from,to);
+        this->movePiece(from,to, false);
         return VALID_CHECK;
     }
-    this->movePiece(from,to);
+    this->movePiece(from,to, false);
     return VALID_MOVE;
 
 }
@@ -244,11 +248,11 @@ void ChessBoard::calcMoveForAll() {
  * @brief Converts a string like "E2E4" into a move and checks its validity.
  * @param input A move string of format "E2E4".
  * @return Result of `isValidMove()` on the parsed move.
- * @throws std::invalid_argument if input format is incorrect or out of board limits.
+ * @throws std::InvalidMoveFormatException if input format is incorrect or out of board limits.
  */
 int ChessBoard::runProgram(std::string &input) {
     if (input.length() != 4) {
-        throw std::invalid_argument("Invalid move string length");
+        throw InvalidMoveFormatException(input);
     }
     int firsIndex =1;
     int thirdIndex = 3;
@@ -257,6 +261,7 @@ int ChessBoard::runProgram(std::string &input) {
     int fromCol = input[firsIndex] - '0';
     char toRow = toupper(input[secondIndex]);
     int toCol = input[thirdIndex] - '0';
+    color statColor = this->_whiteTurn? WHITE : BLACK;
 
     if (fromRow < LIMIT_ROW.first || fromRow > LIMIT_ROW.second ||
         toRow < LIMIT_ROW.first || toRow > LIMIT_ROW.second ||
@@ -267,7 +272,137 @@ int ChessBoard::runProgram(std::string &input) {
 
     location from(fromRow, fromCol);
     location to(toRow, toCol);
-    return isValidMove(from,to);
+    int validMove =  isValidMove(from,to);
+    promotePawn(statColor);
+    return validMove;
+}
+
+/**
+ * @brief Checks if it's currently white's turn to move.
+ *
+ * @return true if it's white's turn, false otherwise.
+ */
+bool ChessBoard::isWhiteTurn() const {
+    return this->_whiteTurn;
+}
+
+/**
+ * @brief Promotes a pawn that has reached the last row to another piece chosen by the player.
+ *
+ * This function checks the appropriate row (first or last, depending on color) for pawns eligible for promotion.
+ * If a pawn is found, the user is prompted to choose a piece to promote to (Queen, Rook, Bishop, or Knight).
+ * The selected piece replaces the pawn on the board.
+ *
+ * @param currentColor The color of the player whose pawn is being promoted.
+ */
+void ChessBoard::promotePawn(color& currentColor) {
+    char limit;
+    color col;
+    if(currentColor == WHITE){
+         limit = LIMIT_ROW.second;
+         col = WHITE;
+    } else{
+        limit = LIMIT_ROW.first;
+        col = BLACK;
+    }
+    for(int i = 0 ; i < LIMIT_COL.second ; i++){
+        location key(limit,i+1);
+        auto it = _board.find(key);
+        if(it != this->_board.end() && it->second->getTool() == 'p'){
+            printPromotionOptions();
+            char symbol = getPromotionChoice();
+            this->_board[key] = createAPiece(key,symbol , col);
+        }
+    }
+
+}
+
+
+/**
+ * @brief Creates a new piece of a given type and color at a specified location.
+ *
+ * This function is used to instantiate a specific chess piece based on a character symbol:
+ * 'p' = Pawn, 'k' = King, 'r' = Rook, 'n' = Knight, 'q' = Queen, 'b' = Bishop.
+ *
+ * @param loc The location on the board where the piece will be placed.
+ * @param simbol The character representing the type of piece.
+ * @param col The color of the piece (WHITE or BLACK).
+ *
+ * @return A shared pointer to the newly created Piece.
+ *
+ * @throws std::invalid_argument If the symbol does not correspond to a valid piece type.
+ */
+std::shared_ptr<Piece> ChessBoard::createAPiece(location &loc,char simbol,color col) {
+    switch(simbol){
+        case 'p':
+            return std::make_shared<Pawn>(loc, col);
+
+        case 'k':
+            return std::make_shared<King>(loc, col);
+        case 'r':
+            return std::make_shared<Rook>(loc, col);
+            break;
+        case 'n':
+            return std::make_shared<Knight>(loc, col);
+            break;
+        case 'q':
+            return std::make_shared<Queen>(loc, col);
+            break;
+        case 'b':
+            return std::make_shared<Bishop>(loc, col);
+            break;
+        default:
+            throw std::invalid_argument("Invalid move string values");
+
+    }
+
+}
+
+
+/**
+ * @brief Prompts the user to select a piece for pawn promotion and validates the input.
+ *
+ * Continuously prompts the user until a valid promotion character is entered.
+ * Valid inputs are: 'q' for Queen, 'r' for Rook, 'b' for Bishop, 'n' for Knight.
+ *
+ * @return The selected promotion character.
+ *
+ * @throws InvalidPromotionException If the entered character is not a valid promotion option.
+ */
+
+char ChessBoard::getPromotionChoice() const {
+    char choice;
+    while (true) {
+        try {
+            std::cout << "Choose a piece to promote to (q - Queen, r - Rook, b - Bishop, n - Knight): ";
+            std::cin >> choice;
+
+            if (choice == 'q' || choice == 'r' || choice == 'b' || choice == 'n') {
+                return choice;
+            } else {
+                throw InvalidPromotionException(choice);
+            }
+
+        } catch (const InvalidPromotionException& e) {
+
+            std::cerr << "Promotion Error: " << e.what() << std::endl;
+        }
+    }
+}
+
+
+/**
+ * @brief Prints the available promotion options for a pawn.
+ *
+ * Displays the characters and corresponding piece names that the user can choose from during promotion.
+ */
+void ChessBoard::printPromotionOptions()const {
+    std::cout << "The pawn has reached the last row! Choose which piece to promote it to:\n";
+    std::cout << "q - Queen\n";
+    std::cout << "r - Rook\n";
+    std::cout << "b - Bishop\n";
+    std::cout << "n - Knight\n";
+
 }
 
 

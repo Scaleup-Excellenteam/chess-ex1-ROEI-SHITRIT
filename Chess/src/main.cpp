@@ -1,15 +1,17 @@
 // Chess 
 #include "Chess.h"
-#include "ChessBoard.h"
+#include "PriorityAlgo.h"
 
 int main()
 {
     string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr";
-	//string _board = "##########K###############################Q#############r#r###k#";
+   // string board =   "###K##########R####################Q##bk############r#P#########";
 	Chess a(board);
 	int codeResponse = 0;
-	string res = a.getInput();
     ChessBoard gameBoard(board);
+    color turn = (gameBoard.isWhiteTurn()) ? color::WHITE : color::BLACK;
+    manager(gameBoard, turn);
+	string res = a.getInput();
 	while (res != "exit")
 	{
 		/* 
@@ -26,10 +28,12 @@ int main()
 		42 - the last movement was legal, next turn 
 		*/
 
-		/**/ 
+		/**/
 		{ // put your code here instead that code
+
             try {
                 codeResponse = gameBoard.runProgram(res);
+
             }
             catch (std::invalid_argument&) {
                 cout << "Invalid input !!" << endl;
@@ -42,6 +46,8 @@ int main()
 		/**/
 
 		a.setCodeResponse(codeResponse);
+        color turn = (gameBoard.isWhiteTurn()) ? color::WHITE : color::BLACK;
+        manager(gameBoard, turn);
 		res = a.getInput();
 	}
 

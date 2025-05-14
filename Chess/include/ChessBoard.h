@@ -24,14 +24,19 @@ public:
     ChessBoard(const ChessBoard &chessBoard);
     ~ChessBoard()=default;
     int isValidMove(location &from,location &to);
-    void movePiece(location &from,location &to);
+    void movePiece(location &from,location &to,bool isSimulate);
     void switchTurn();
     [[nodiscard]] bool isKingInCheck(bool isWhite) const;
     int simulateMove(location &from, location &to);
     void calcMoveForAll();
     int runProgram(std::string &input);
+    void promotePawn(color& currentColor);
+    std::shared_ptr<Piece> createAPiece(location &loc,char simbol,color col);
+    void printPromotionOptions()const;
+    char getPromotionChoice()const;
     //getters
     std::map<location,std::shared_ptr<Piece>>& getBoard();
+    [[nodiscard]] bool isWhiteTurn() const;
 
 
 
@@ -40,7 +45,6 @@ private:
     location _blackKing;
     location _whiteKing;
     std::map<location, std::shared_ptr<Piece>> _board;
-
 
 };
 
