@@ -34,7 +34,12 @@ add_executable (Chess ""
         include/Queen.h
         src/Queen.cpp
         include/Knight.h
-        src/Knight.cpp)
+        src/Knight.cpp
+        include/PriorityQueue.h
+        include/PriorityAlgo.h
+        src/PriorityAlgo.cpp
+        include/SpecialExceptions.h
+)
 
 
 add_subdirectory (include)

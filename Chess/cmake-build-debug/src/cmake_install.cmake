@@ -1,4 +1,4 @@
-# Install script for directory: /cygdrive/c/Users/ORLY/CLionProjects/chess-ex1/Chess/src
+# Install script for directory: /cygdrive/c/Users/ORLY/CLionProjects/chess-ex02/Chess/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

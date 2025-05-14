@@ -1,6 +1,15 @@
 #pragma once
 #include <utility>
 
+enum PieceValue {
+    PAWN_VALUE = 1,
+    KNIGHT_VALUE = 3,
+    BISHOP_VALUE = 3,
+    ROOK_VALUE = 5,
+    QUEEN_VALUE = 9,
+    KING_VALUE = 1000
+};
+
 /**
  * @enum codes
  * @brief Status codes returned when checking the validity of a move.
